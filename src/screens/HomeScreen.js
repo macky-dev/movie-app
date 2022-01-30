@@ -1,12 +1,8 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getTrendingMovies,
-  getMovieWatchList,
-  selectMovie,
-} from "../store/movieSlice";
-import styled from "styled-components/native";
+import { getTrendingMovies, selectMovie } from "../store/movieSlice";
 
+import styled from "styled-components/native";
 import { Search, MovieList, MovieCard, LoadingIndicator } from "../components";
 
 const Container = styled.View`

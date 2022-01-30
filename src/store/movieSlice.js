@@ -36,21 +36,27 @@ export const getMovieDetails = createAsyncThunk(
   async (movieId, { getState, rejectWithValue }) => {
     try {
       const { user, sessionId } = getState().user;
+      // watchlist
       const watchlistResponse = await axios.get(
         requests.getMovieWatchList(user.id, sessionId),
       );
       const watchlist = watchlistResponse.data.results;
-
+      // rated movies
       const ratedMoviesResponse = await axios.get(
         requests.getRatedMovies(user.id, sessionId),
       );
       const ratedMovies = ratedMoviesResponse.data.results;
-
+      // movie detail
       const movieDetailResponse = await axios.get(
         requests.getMovieDetail(movieId),
       );
       const { id, genres } = movieDetailResponse.data;
       const genresList = genres.map((genre) => genre.name);
+      // movie reviews
+      const movieReviewsResponse = await axios.get(
+        requests.getMovieReviews(movieId),
+      );
+      const reviews = movieReviewsResponse.data.results;
 
       const isOnWatchlist = watchlist.some((movie) => movie.id === id);
 
@@ -62,6 +68,7 @@ export const getMovieDetails = createAsyncThunk(
         isOnWatchlist,
         myRating,
         genresList,
+        reviews,
       };
     } catch (error) {
       return rejectWithValue("Error in fetching movie detail");
@@ -106,6 +113,44 @@ export const toggleWatchlist = createAsyncThunk(
       return { ...movieDetail, isOnWatchlist: !watchlist };
     } catch (error) {
       return rejectWithValue("Error in adding/removing watchlist");
+    }
+  },
+);
+
+export const rateMovie = createAsyncThunk(
+  "movie/rateMovie",
+  async ({ movieId, rating }, { rejectWithValue, getState }) => {
+    try {
+      const { sessionId } = getState().user;
+      const { movieDetail } = getState().movie;
+      await axios.post(
+        requests.rateMovie(movieId, sessionId),
+        {
+          value: rating,
+        },
+        {
+          headers: { "Content-Type": "application/json;charset=utf-8" },
+        },
+      );
+      return { ...movieDetail, myRating: rating };
+    } catch (error) {
+      return rejectWithValue("Error in rating movie");
+    }
+  },
+);
+
+export const deleteRating = createAsyncThunk(
+  "movie/deleteRating",
+  async (movieId, { rejectWithValue, getState }) => {
+    try {
+      const { sessionId } = getState().user;
+      const { movieDetail } = getState().movie;
+      await axios.delete(requests.deleteRating(movieId, sessionId), {
+        headers: { "Content-Type": "application/json;charset=utf-8" },
+      });
+      return { ...movieDetail, myRating: null };
+    } catch (error) {
+      return rejectWithValue("Error in deleting movie rating");
     }
   },
 );
@@ -165,11 +210,38 @@ export const movieSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     });
+    builder.addCase(toggleWatchlist.pending, (state) => {
+      state.loading = true;
+    });
     builder.addCase(toggleWatchlist.fulfilled, (state, action) => {
       state.movieDetail = action.payload;
+      state.loading = false;
     });
     builder.addCase(toggleWatchlist.rejected, (state, action) => {
       state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(rateMovie.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(rateMovie.fulfilled, (state, action) => {
+      state.movieDetail = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(rateMovie.rejected, (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(deleteRating.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteRating.fulfilled, (state, action) => {
+      state.movieDetail = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(deleteRating.rejected, (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
     });
   },
 });

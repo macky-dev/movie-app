@@ -4,7 +4,7 @@ import { toggleWatchlist } from "../store/movieSlice";
 
 import { Button } from "react-native-paper";
 
-const WatchlistButton = ({ movieDetail }) => {
+const WatchlistButton = ({ movieDetail, disabled }) => {
   const dispatch = useDispatch();
   const { id, isOnWatchlist } = movieDetail;
 
@@ -18,6 +18,7 @@ const WatchlistButton = ({ movieDetail }) => {
       mode={isOnWatchlist ? "contained" : "outlined"}
       color={isOnWatchlist ? "red" : "black"}
       onPress={handleWatchlist}
+      disabled={disabled}
     >
       {isOnWatchlist ? "Remove from watchlist" : "Add to watchlist"}
     </Button>

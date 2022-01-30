@@ -13,6 +13,13 @@ const TabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#6200ee",
+        tabBarStyle: {
+          backgroundColor: "#f2f2f2",
+          borderTopRightRadius: 10,
+          borderTopLeftRadius: 10,
+          borderColor: "transparent",
+          // backgroundColor: "#6200ee",
+        },
       }}
     >
       <Tab.Screen

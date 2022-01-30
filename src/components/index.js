@@ -6,6 +6,8 @@ import Search from "./Search";
 import MovieDetailSection from "./MovieDetailSection";
 import WatchlistButton from "./WatchlistButton";
 import RatingButton from "./RatingButton";
+import ReviewsButton from "./ReviewsButton";
+import ReviewCard from "./ReviewCard";
 
 export {
   LoadingIndicator,
@@ -16,4 +18,6 @@ export {
   MovieDetailSection,
   WatchlistButton,
   RatingButton,
+  ReviewsButton,
+  ReviewCard,
 };

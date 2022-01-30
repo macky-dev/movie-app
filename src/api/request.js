@@ -19,6 +19,8 @@ const requests = {
     `/movie/${movieId}/rating?api_key=${TMDB_API_KEY}&session_id=${sessionId}`,
   deleteRating: (movieId, sessionId) =>
     `/movie/${movieId}/rating?api_key=${TMDB_API_KEY}&session_id=${sessionId}`,
+  getMovieReviews: (movieId) =>
+    `/movie/${movieId}/reviews?api_key=${TMDB_API_KEY}&language=en-US&page=1`,
 };
 
 export default requests;

@@ -9,62 +9,33 @@ export const loginRequest = createAsyncThunk(
     try {
       const tokenResponse = await axios.get(requests.createRequestToken);
       const { request_token } = tokenResponse.data;
-      dispatch(loginUser({ username, password, request_token }));
-    } catch (error) {
-      return rejectWithValue("Request token error");
-    }
-  },
-);
-
-export const loginUser = createAsyncThunk(
-  "user/loginUser",
-  async (
-    { username, password, request_token },
-    { dispatch, rejectWithValue },
-  ) => {
-    try {
+      //login w/ user & pass
       const loginResponse = await axios.post(requests.createSessionWithLogin, {
         username,
         password,
         request_token,
       });
       const { request_token: validated_token } = loginResponse.data;
-      dispatch(createSession(validated_token));
-    } catch (error) {
-      return rejectWithValue("Invalid username or password");
-    }
-  },
-);
-
-export const createSession = createAsyncThunk(
-  "user/createSession",
-  async (validated_token, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await axios.post(requests.createSession, {
+      //create session
+      const sessionResponse = await axios.post(requests.createSession, {
         request_token: validated_token,
       });
-      const { session_id } = response.data;
-      dispatch(getAccountDetails(session_id));
-    } catch (error) {
-      return rejectWithValue("Create Session error");
-    }
-  },
-);
-
-export const getAccountDetails = createAsyncThunk(
-  "user/getAccountDetails",
-  async (session_id, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(requests.getAccountDetails, {
+      const { session_id } = sessionResponse.data;
+      //get account
+      const accountResponse = await axios.get(requests.getAccountDetails, {
         params: {
           session_id,
         },
       });
+      //store session and user data locally
       await AsyncStorage.setItem("@sessionId", JSON.stringify(session_id));
-      await AsyncStorage.setItem("@userData", JSON.stringify(response.data));
-      return response.data;
+      await AsyncStorage.setItem(
+        "@userData",
+        JSON.stringify(accountResponse.data),
+      );
+      return { user: accountResponse.data, sessionId: session_id };
     } catch (error) {
-      return rejectWithValue("Account Details error");
+      return rejectWithValue("Invalid username or password");
     }
   },
 );
@@ -73,8 +44,19 @@ export const localSignin = createAsyncThunk("user/localSignin", async () => {
   const user = await AsyncStorage.getItem("@userData");
   const sessionId = await AsyncStorage.getItem("@sessionId");
   if (user && sessionId) {
-    return { user: JSON.parse(user), sessionId: JSON.parse(sessionId) };
+    return {
+      user: JSON.parse(user),
+      sessionId: JSON.parse(sessionId),
+      isAuthenticated: true,
+    };
   }
+  return { user: null, sessionId: null, isAuthenticated: false };
+});
+
+export const logout = createAsyncThunk("user/logout", async () => {
+  await AsyncStorage.removeItem("@userData");
+  await AsyncStorage.removeItem("@sessionId");
+  return { user: null, sessionId: null, isAuthenticated: false };
 });
 
 const initialState = {
@@ -88,66 +70,44 @@ const initialState = {
 export const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {
-    signout: (state) => {
-      // to remove item in async storage as well
-      state.user = null;
-      state.isAuthenticated = false;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(loginRequest.pending, (state) => {
       state.loading = true;
     });
-    builder.addCase(loginRequest.fulfilled, (state) => {
-      state.loading = false;
-    });
-    builder.addCase(loginRequest.rejected, (state, action) => {
-      state.error = action.payload;
-      state.loading = false;
-    });
-    builder.addCase(loginUser.pending, (state) => {
-      state.loading = true;
-    });
-    builder.addCase(loginUser.fulfilled, (state) => {
-      state.loading = false;
-    });
-    builder.addCase(loginUser.rejected, (state, action) => {
-      state.error = action.payload;
-      state.loading = false;
-    });
-    builder.addCase(createSession.pending, (state) => {
-      state.loading = true;
-    });
-    builder.addCase(createSession.fulfilled, (state) => {
-      state.loading = false;
-    });
-    builder.addCase(createSession.rejected, (state, action) => {
-      state.error = action.payload;
-      state.loading = false;
-    });
-    builder.addCase(getAccountDetails.pending, (state) => {
-      state.loading = true;
-    });
-    builder.addCase(getAccountDetails.fulfilled, (state, action) => {
-      state.user = action.payload;
+    builder.addCase(loginRequest.fulfilled, (state, { payload }) => {
+      state.user = payload.user;
+      state.sessionId = payload.sessionId;
       state.isAuthenticated = true;
       state.loading = false;
+      state.error = null;
     });
-    builder.addCase(getAccountDetails.rejected, (state, action) => {
+    builder.addCase(loginRequest.rejected, (state, action) => {
       state.error = action.payload;
       state.loading = false;
     });
     builder.addCase(localSignin.pending, (state) => {
       state.loading = true;
     });
-    builder.addCase(localSignin.fulfilled, (state, action) => {
-      state.user = action.payload.user;
-      state.sessionId = action.payload.sessionId;
-      state.isAuthenticated = true;
+    builder.addCase(localSignin.fulfilled, (state, { payload }) => {
+      state.user = payload.user;
+      state.sessionId = payload.sessionId;
+      state.isAuthenticated = payload.isAuthenticated;
       state.loading = false;
     });
     builder.addCase(localSignin.rejected, (state) => {
+      state.loading = false;
+    });
+    builder.addCase(logout.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(logout.fulfilled, (state, { payload }) => {
+      state.user = payload.user;
+      state.sessionId = payload.sessionId;
+      state.isAuthenticated = payload.isAuthenticated;
+      state.loading = false;
+    });
+    builder.addCase(logout.rejected, (state) => {
       state.loading = false;
     });
   },

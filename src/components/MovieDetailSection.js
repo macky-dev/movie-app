@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 
 import styled from "styled-components";
+import moment from "moment";
 import { Rating } from "react-native-ratings";
 import {
   Card,
@@ -36,25 +37,29 @@ const RatingText = styled(Subheading)`
 `;
 
 const MovieDetailSection = ({ movieDetail }) => {
+  const releaseDate = moment(new Date(movieDetail.release_date)).format(
+    "MMMM DD, YYYY",
+  );
+
   return (
     <Card elevation={0}>
       <CardCover
-        source={{ uri: `${BASE_URL}${movieDetail?.poster_path}` }}
+        source={{ uri: `${BASE_URL}${movieDetail.poster_path}` }}
         resizeMode="contain"
       />
       <Card.Content>
-        <Title>{movieDetail?.title}</Title>
+        <Title>{movieDetail.title}</Title>
         <View>
           <Caption>{`Genres: `}</Caption>
           <Subheading numberOfLines={2} style={{ flexShrink: 1 }}>
-            {movieDetail?.genresList.join()}
+            {movieDetail.genresList.join()}
           </Subheading>
         </View>
 
         <CardContentSection>
           <View>
             <Caption>{`Release date: `}</Caption>
-            <Subheading>{movieDetail?.release_date}</Subheading>
+            <Subheading>{releaseDate}</Subheading>
           </View>
           <View>
             <Caption>{`User Score: `}</Caption>
@@ -64,12 +69,12 @@ const MovieDetailSection = ({ movieDetail }) => {
                 imageSize={20}
                 startingValue={movieDetail ? movieDetail.vote_average / 2 : 0}
               />
-              <RatingText>{` ${movieDetail?.vote_average}`}</RatingText>
+              <RatingText>{` ${movieDetail.vote_average}`}</RatingText>
             </RowContainer>
           </View>
         </CardContentSection>
         <Caption>{`Overview: `}</Caption>
-        <Paragraph>{movieDetail?.overview}</Paragraph>
+        <Paragraph>{movieDetail.overview}</Paragraph>
       </Card.Content>
     </Card>
   );

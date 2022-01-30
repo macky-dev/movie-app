@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { loginRequest, selectUser } from "../store/userSlice";
+
 import styled from "styled-components/native";
+import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 
 const Container = styled.KeyboardAvoidingView`
@@ -58,7 +59,7 @@ const LoginScreen = ({ navigation }) => {
   }, [user]);
 
   const handleUserLogin = () => {
-    if (!username && !password) {
+    if (!username || !password) {
       return;
     }
     dispatch(loginRequest({ username, password }));
@@ -102,6 +103,7 @@ const LoginScreen = ({ navigation }) => {
               mode="contained"
               onPress={() => handleUserLogin()}
               loading={loading}
+              disabled={loading}
             >
               Login
             </Button>

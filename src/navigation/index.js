@@ -5,19 +5,16 @@ import { localSignin, selectUser } from "../store/userSlice";
 
 import AppNavigator from "./AppNavigator";
 import AccountNavigator from "./AccountNavigator";
-import { LoadingIndicator } from "../components";
 
 const Navigation = () => {
-  const { loading, isAuthenticated } = useSelector(selectUser);
+  const { isAuthenticated } = useSelector(selectUser);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(localSignin());
   }, []);
 
-  return loading ? (
-    <LoadingIndicator />
-  ) : (
+  return (
     <NavigationContainer
       theme={{
         colors: {
